@@ -40,6 +40,20 @@ describe('markdown-snippet-injector', function () {
     done();
   });
 
+    describe('Node Modules',
+    function () {
+      it('should not process node_modules from source into [root]/README.md', function (done) {
+        shelljs.exec('node index.js --root=./test/root --docsroot=./test/docsroot-output');
+        notContain("<snippet id='ignore-ts-snippet'/>", function () {
+          notContain("<snippet id='ignore-ts-snippet'>", function () {
+            notContain("</snippet>", function () {
+              notContain('return not + here;', done);
+            });
+          });
+        });
+      });
+    });
+
   describe('XML',
     function () {
       it('should process XML snippets', function (done) {

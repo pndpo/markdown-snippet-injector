@@ -26,3 +26,8 @@ This one is already processed snippet
 }
 ```
 </snippet>
+
+# Node Modules
+
+This should never be processed!
+<snippet id ='ignore-ts-snippet'/>

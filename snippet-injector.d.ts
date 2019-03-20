@@ -2,6 +2,7 @@ export declare class SnippetInjector {
     private _storedSnippets;
     private _snippetTitles;
     private _sourceFileExtensionFilter;
+    private _sourceFolderFilter;
     private _targetFileExtensionFilter;
     private _storedSourceTypes;
     private _storedTargetTypes;
@@ -12,15 +13,16 @@ export declare class SnippetInjector {
     toWrap: boolean;
     targetFileExtensionFilter: string;
     sourceFileExtensionFilter: string;
+    sourceFolderFilter: string;
     snippetTitles: string;
     private init;
     process(root: string): void;
     injectSnippets(docsRoot: string): void;
     private processDirectory;
+    private processDocsDirectory;
     private replaceWrappedSnippetsWithCorespondingTags;
     private wrapSnippetWithComments;
     private processDocsFile;
-    private processDocsDirectory;
     private processFile;
     protected hasSnippet(fileExtension: string, id: string): boolean;
     protected addSnippet(fileExtension: string, id: string, snippet: string): void;

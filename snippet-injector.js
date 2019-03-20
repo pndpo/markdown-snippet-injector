@@ -45,6 +45,7 @@ var htmlSpec = xmlSpec;
 var SnippetInjector = (function () {
     function SnippetInjector() {
         this._sourceFileExtensionFilter = "";
+        this._sourceFolderFilter = "node_modules";
         this._targetFileExtensionFilter = "";
         this._fileFormatSpecs = {};
         this._storedSnippets = {};
@@ -75,6 +76,16 @@ var SnippetInjector = (function () {
         },
         set: function (value) {
             this._sourceFileExtensionFilter = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(SnippetInjector.prototype, "sourceFolderFilter", {
+        get: function () {
+            return this._sourceFolderFilter;
+        },
+        set: function (value) {
+            this._sourceFolderFilter = value;
         },
         enumerable: true,
         configurable: true
@@ -141,7 +152,11 @@ var SnippetInjector = (function () {
         }
     };
     SnippetInjector.prototype.processDirectory = function (path, extensionFilter) {
+        var _this = this;
         var files = fsModule.readdirSync(path);
+        files = files.filter(function (file) {
+            return file.indexOf(_this._sourceFolderFilter) < 0;
+        });
         for (var i = 0; i < files.length; i++) {
             var currentFile = files[i];
             var fullPath = path + '/' + currentFile;
@@ -151,6 +166,24 @@ var SnippetInjector = (function () {
             }
             else if (fileStat.isFile() && pathModule.extname(fullPath) === extensionFilter) {
                 this.processFile(fullPath, extensionFilter);
+            }
+        }
+    };
+    SnippetInjector.prototype.processDocsDirectory = function (path, extensionFilter) {
+        var _this = this;
+        var files = fsModule.readdirSync(path);
+        files = files.filter(function (file) {
+            return file.indexOf(_this._sourceFolderFilter) < 0;
+        });
+        for (var i = 0; i < files.length; i++) {
+            var currentFile = files[i];
+            var fullPath = path + '/' + currentFile;
+            var fileStat = fsModule.lstatSync(fullPath);
+            if (fileStat.isDirectory()) {
+                this.processDocsDirectory(fullPath, extensionFilter);
+            }
+            else if (fileStat.isFile() && pathModule.extname(fullPath) === extensionFilter) {
+                this.processDocsFile(fullPath, extensionFilter);
             }
         }
     };
@@ -202,20 +235,6 @@ var SnippetInjector = (function () {
         }
         if (hadMatches === true) {
             fsModule.writeFileSync(path, fileContents, "utf8");
-        }
-    };
-    SnippetInjector.prototype.processDocsDirectory = function (path, extensionFilter) {
-        var files = fsModule.readdirSync(path);
-        for (var i = 0; i < files.length; i++) {
-            var currentFile = files[i];
-            var fullPath = path + '/' + currentFile;
-            var fileStat = fsModule.lstatSync(fullPath);
-            if (fileStat.isDirectory()) {
-                this.processDocsDirectory(fullPath, extensionFilter);
-            }
-            else if (fileStat.isFile() && pathModule.extname(fullPath) === extensionFilter) {
-                this.processDocsFile(fullPath, extensionFilter);
-            }
         }
     };
     SnippetInjector.prototype.processFile = function (path, extensionFilter) {

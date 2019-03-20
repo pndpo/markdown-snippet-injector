@@ -63,6 +63,7 @@ export class SnippetInjector {
     private _storedSnippets;
     private _snippetTitles: string;
     private _sourceFileExtensionFilter: string = "";
+    private _sourceFolderFilter: string = "node_modules";
     private _targetFileExtensionFilter: string = "";
     private _storedSourceTypes: Array<string>;
     private _storedTargetTypes: Array<string>;
@@ -100,6 +101,14 @@ export class SnippetInjector {
         this._sourceFileExtensionFilter = value;
     }
 
+    get sourceFolderFilter() {
+        return this._sourceFolderFilter;
+    }
+
+    set sourceFolderFilter(value: string) {
+        this._sourceFolderFilter = value;
+    }
+ 
     get snippetTitles(): string {
         return this._snippetTitles;
     }
@@ -111,6 +120,7 @@ export class SnippetInjector {
     private init() {
         this._storedSourceTypes = this._sourceFileExtensionFilter.split('|');
         this._storedTargetTypes = this._targetFileExtensionFilter.split('|');
+
 
         if (this.snippetTitles === undefined) {
             this._storedSourceTitles = { '.js': 'JavaScript', '.ts': 'TypeScript' };
@@ -169,6 +179,11 @@ export class SnippetInjector {
 
     private processDirectory(path: string, extensionFilter: string) {
         var files = fsModule.readdirSync(path);
+
+        files = files.filter(file => {
+            return file.indexOf(this._sourceFolderFilter) < 0;
+        });
+
         for (var i = 0; i < files.length; i++) {
             var currentFile = files[i];
             var fullPath = path + '/' + currentFile;
@@ -177,6 +192,26 @@ export class SnippetInjector {
                 this.processDirectory(path + '/' + currentFile, extensionFilter);
             } else if (fileStat.isFile() && pathModule.extname(fullPath) === extensionFilter) {
                 this.processFile(fullPath, extensionFilter);
+            }
+        }
+    }
+
+    private processDocsDirectory(path: string, extensionFilter: string) {
+        var files = fsModule.readdirSync(path);
+
+        files = files.filter(file => {
+            return file.indexOf(this._sourceFolderFilter) < 0;
+        });
+
+        for (var i = 0; i < files.length; i++) {
+            var currentFile = files[i];
+            var fullPath = path + '/' + currentFile;
+            var fileStat = fsModule.lstatSync(fullPath);
+
+            if (fileStat.isDirectory() ) {
+                this.processDocsDirectory(fullPath, extensionFilter);
+            } else if (fileStat.isFile() && pathModule.extname(fullPath) === extensionFilter) {
+                this.processDocsFile(fullPath, extensionFilter);
             }
         }
     }
@@ -257,19 +292,6 @@ export class SnippetInjector {
         }
     }
 
-    private processDocsDirectory(path: string, extensionFilter: string) {
-        var files = fsModule.readdirSync(path);
-        for (var i = 0; i < files.length; i++) {
-            var currentFile = files[i];
-            var fullPath = path + '/' + currentFile;
-            var fileStat = fsModule.lstatSync(fullPath);
-            if (fileStat.isDirectory()) {
-                this.processDocsDirectory(fullPath, extensionFilter);
-            } else if (fileStat.isFile() && pathModule.extname(fullPath) === extensionFilter) {
-                this.processDocsFile(fullPath, extensionFilter);
-            }
-        }
-    }
 
     private processFile(path: string, extensionFilter: string) {
         console.log("Processing source file: " + path);
